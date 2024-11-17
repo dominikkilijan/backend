@@ -15,8 +15,8 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/process")
 public class ProcessController {
-    @PostMapping()
-    public ResponseEntity<Resource> processFile(@RequestParam("file") MultipartFile file) {
+    @PostMapping
+    public ResponseEntity<byte[]> processFile(@RequestParam("file") MultipartFile file) {
         try {
             RestTemplate restTemplate = new RestTemplate();
             String audiverisUrl = "http://localhost:8000/process";
@@ -38,15 +38,20 @@ public class ProcessController {
             );
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                Resource responseBody = response.getBody();
+                InputStream inputStream = response.getBody().getInputStream();
+                byte[] fileContent = inputStream.readAllBytes();
+
+                String originalFileName = file.getOriginalFilename();
+                String outputFileName = getFileNameWithExtension(originalFileName);
 
                 HttpHeaders responseHeaders = new HttpHeaders();
                 responseHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
                 responseHeaders.setContentDisposition(ContentDisposition.builder("attachment")
-                        .filename(getFileNameWithExtension(Objects.requireNonNull(file.getOriginalFilename())))
+                        .filename(outputFileName)
                         .build());
+                responseHeaders.add("Access-Control-Expose-Headers", "Content-Disposition");
 
-                return new ResponseEntity<>(responseBody, responseHeaders, HttpStatus.OK);
+                return new ResponseEntity<>(fileContent, responseHeaders, HttpStatus.OK);
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
@@ -54,6 +59,7 @@ public class ProcessController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
 
     @GetMapping("/HT")
     public String healthCheck() {
