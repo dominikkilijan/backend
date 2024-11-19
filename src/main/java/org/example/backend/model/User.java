@@ -2,7 +2,7 @@ package org.example.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-//import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,18 +19,14 @@ public class User {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-//    @NotNull
+    @NotNull
     @JsonIgnore // Ukrywa hasło w odpowiedziach API
     @Column(name = "password", nullable = false)
     private String password;
 
-//    @NotNull
+    @NotNull
     @Column(name = "email", nullable = false, unique = true)
     private String email;
-
-//    @NotNull
-    @Column(name = "name", nullable = false)
-    private String name;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MusicFile> musicFiles;

@@ -1,7 +1,7 @@
 package org.example.backend.model;
 
 import jakarta.persistence.*;
-//import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,11 +18,11 @@ public class MusicFile {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-//    @NotNull
+    @NotNull
     @Column(name = "url", nullable = false)
     private String url;
 
-//    @NotNull
+    @NotNull
     @Column(name = "name", nullable = false)
     private String name;
 
