@@ -2,11 +2,11 @@ package org.example.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+//import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.antlr.v4.runtime.misc.NotNull;
 
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -16,22 +16,22 @@ import java.util.UUID;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id")
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @NotNull
-    @JsonIgnore
-    @Column(name = "password")
+//    @NotNull
+    @JsonIgnore // Ukrywa hasło w odpowiedziach API
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @NotNull
-    @Column(name = "email")
+//    @NotNull
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @NotNull
-    @Column(name = "name")
+//    @NotNull
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "users")
-    private Set<MusicFile> musicFiles;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MusicFile> musicFiles;
 }
