@@ -42,7 +42,7 @@ public class ProcessController {
                 byte[] fileContent = inputStream.readAllBytes();
 
                 String originalFileName = file.getOriginalFilename();
-                String outputFileName = getFileNameWithExtension(originalFileName);
+                String outputFileName = getFileNameWithExtension(originalFileName); // TODO: argument might be null
 
                 HttpHeaders responseHeaders = new HttpHeaders();
                 responseHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
