@@ -84,10 +84,13 @@ public class ProcessController {
                         Path outputPath = uploadPath.resolve(outputFileName);
                         Files.write(outputPath, fileContent);
 
+                        // Generate full file URL
+                        String fileUrl = "http://localhost:8080/process/files/" + userId + "/" + outputFileName;
+
                         // Save metadata to the database
                         MusicFile musicFile = new MusicFile();
-                        musicFile.setName(fileNameWithoutExtension); // Save name without extension
-                        musicFile.setUrl(outputPath.toString());
+                        musicFile.setName(fileNameWithoutExtension);
+                        musicFile.setUrl(fileUrl);
                         musicFile.setDate(LocalDateTime.now());
                         musicFile.setUser(user);
 
@@ -110,6 +113,34 @@ public class ProcessController {
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/files/{userId}/{fileName}")
+    public ResponseEntity<Resource> serveFile(@PathVariable UUID userId, @PathVariable String fileName) {
+        try {
+            // Lokalizacja pliku
+            Path filePath = Paths.get(UPLOAD_DIR, userId.toString(), fileName);
+
+            // Sprawdzenie, czy plik istnieje
+            if (!Files.exists(filePath)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            // Tworzenie zasobu pliku
+            Resource fileResource = new FileSystemResource(filePath);
+
+            // Nagłówki odpowiedzi
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDisposition(ContentDisposition.builder("attachment")
+                    .filename(fileName)
+                    .build());
+            headers.add("Access-Control-Expose-Headers", "Content-Disposition");
+
+            return new ResponseEntity<>(fileResource, headers, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
