@@ -30,6 +30,6 @@ public class MusicFile {
     private LocalDateTime date;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false) // Tworzy kolumnę user_id w music_files
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }

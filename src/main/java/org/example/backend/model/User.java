@@ -20,7 +20,7 @@ public class User {
     private UUID id;
 
     @NotNull
-    @JsonIgnore // Ukrywa hasło w odpowiedziach API
+    @JsonIgnore
     @Column(name = "password", nullable = false)
     private String password;
 

@@ -25,7 +25,6 @@ public class AccountController {
     private final UserRepository userRepository;
     private final MusicFileRepository musicFileRepository;
 
-    // Constructor for dependency injection
     public AccountController(UserRepository userRepository, MusicFileRepository musicFileRepository) {
         this.userRepository = userRepository;
         this.musicFileRepository = musicFileRepository;
@@ -54,13 +53,9 @@ public class AccountController {
         if (fileOptional.isPresent()) {
             MusicFile musicFile = fileOptional.get();
             try {
-                // Delete file from the filesystem
                 Path filePath = Paths.get(musicFile.getUrl());
                 Files.deleteIfExists(filePath);
-
-                // Delete file metadata from the database
                 musicFileRepository.delete(musicFile);
-
                 return ResponseEntity.ok("File deleted successfully.");
             } catch (IOException e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
