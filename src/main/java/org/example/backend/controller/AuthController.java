@@ -1,4 +1,8 @@
 package org.example.backend.controller;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.example.backend.model.User;
 import org.example.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,9 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Optional;
 
@@ -17,6 +20,8 @@ import java.util.Optional;
 public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor("your-256-bit-secret-your-256-bit-secret".getBytes());
 
     @Autowired
     public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -35,8 +40,8 @@ public class AuthController {
                         .setSubject(user.getId().toString())
                         .claim("email", user.getEmail())
                         .setIssuedAt(new Date())
-                        .setExpiration(new Date(System.currentTimeMillis() + 86400000))
-                        .signWith(SignatureAlgorithm.HS256, "secret")
+                        .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 24 godziny
+                        .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                         .compact();
 
                 return ResponseEntity.ok(token);
@@ -45,4 +50,3 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
 }
-
