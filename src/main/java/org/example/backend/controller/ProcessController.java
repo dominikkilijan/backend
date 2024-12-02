@@ -100,10 +100,14 @@ public class ProcessController {
                     }
                 }
 
+                String fileNameWithoutExtension = getFileNameWithoutExtension(file.getOriginalFilename());
+                String fileExtension = ".mxl";
+                String outputFileName = fileNameWithoutExtension + fileExtension;
+
                 HttpHeaders responseHeaders = new HttpHeaders();
                 responseHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
                 responseHeaders.setContentDisposition(ContentDisposition.builder("attachment")
-                        .filename("processed.mxl")
+                        .filename(outputFileName) // dynamiczna nazwa pliku
                         .build());
                 responseHeaders.add("Access-Control-Expose-Headers", "Content-Disposition");
 
@@ -117,7 +121,6 @@ public class ProcessController {
                     .body(("Error: " + e.getMessage()).getBytes());
         }
     }
-
 
     @GetMapping("/files/{fileName}")
     public ResponseEntity<Resource> serveFile(@PathVariable String fileName) {
