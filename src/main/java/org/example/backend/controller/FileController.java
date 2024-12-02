@@ -16,13 +16,12 @@ import java.nio.file.Paths;
 @RequestMapping("/process/files")
 public class FileController {
 
-    private final String baseDirectory = "C:/Users/domin/OneDrive/Pulpit/Inzynierka/backend/uploads";
-
     @GetMapping("/{folderId}/{fileName}")
     public ResponseEntity<?> getFile(
             @PathVariable String folderId,
             @PathVariable String fileName) {
 
+        String baseDirectory = "C:/Users/domin/OneDrive/Pulpit/Inzynierka/backend/uploads";
         Path filePath = Paths.get(baseDirectory, folderId, fileName);
 
         if (!Files.exists(filePath)) {

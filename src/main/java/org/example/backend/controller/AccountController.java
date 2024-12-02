@@ -53,7 +53,6 @@ public class AccountController {
 
     @DeleteMapping("/delete-file")
     public ResponseEntity<?> deleteFile(@RequestParam("fileId") UUID fileId) {
-        // Pobranie userId z JWT
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = (String) authentication.getPrincipal();
 
@@ -61,16 +60,24 @@ public class AccountController {
 
         if (fileOptional.isPresent()) {
             MusicFile musicFile = fileOptional.get();
+
             if (!musicFile.getUser().getId().toString().equals(userId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body("You do not have permission to delete this file.");
             }
+
             try {
-                Path filePath = Paths.get(musicFile.getUrl());
+                String uploadsDirectory = "C:/Users/domin/OneDrive/Pulpit/Inzynierka/backend/uploads";
+                String relativePath = musicFile.getUrl().split("/process/files")[1];
+                Path filePath = Paths.get(uploadsDirectory, relativePath);
+
                 Files.deleteIfExists(filePath);
+
                 musicFileRepository.delete(musicFile);
+
                 return ResponseEntity.ok("File deleted successfully.");
             } catch (IOException e) {
+                e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body("Failed to delete the file from the filesystem.");
             }
@@ -79,6 +86,7 @@ public class AccountController {
                     .body("File with the provided ID does not exist.");
         }
     }
+
 
     private MusicFileResponseDTO convertToDTO(MusicFile musicFile) {
         return new MusicFileResponseDTO(

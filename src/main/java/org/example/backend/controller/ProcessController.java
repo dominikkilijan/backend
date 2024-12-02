@@ -107,7 +107,7 @@ public class ProcessController {
                 HttpHeaders responseHeaders = new HttpHeaders();
                 responseHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
                 responseHeaders.setContentDisposition(ContentDisposition.builder("attachment")
-                        .filename(outputFileName) // dynamiczna nazwa pliku
+                        .filename(outputFileName)
                         .build());
                 responseHeaders.add("Access-Control-Expose-Headers", "Content-Disposition");
 
