@@ -1,6 +1,7 @@
 package org.example.backend.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
@@ -9,12 +10,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.util.Collections;
 
 public class JwtFilter extends HttpFilter {
 
-    private static final String SECRET_KEY = "secret";
+    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor("inzynierka-spring-backend-secret-pwr-w4n-2024-2025".getBytes());
+
 
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -27,7 +30,7 @@ public class JwtFilter extends HttpFilter {
 
             try {
                 Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(SECRET_KEY.getBytes())
+                        .setSigningKey(SECRET_KEY)
                         .build()
                         .parseClaimsJws(token)
                         .getBody();

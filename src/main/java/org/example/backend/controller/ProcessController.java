@@ -42,7 +42,11 @@ public class ProcessController {
     public ResponseEntity<byte[]> processFile(@RequestParam("file") MultipartFile file) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String userId = (String) authentication.getPrincipal();
+            String userId = null;
+
+            if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
+                userId = (String) authentication.getPrincipal();
+            }
 
             RestTemplate restTemplate = new RestTemplate();
             String audiverisUrl = "http://localhost:8000/process";
@@ -67,37 +71,39 @@ public class ProcessController {
                 InputStream inputStream = response.getBody().getInputStream();
                 byte[] fileContent = inputStream.readAllBytes();
 
-                UUID fileId = UUID.randomUUID();
-                String fileExtension = ".mxl";
-                String fileNameWithoutExtension = getFileNameWithoutExtension(file.getOriginalFilename());
-                String outputFileName = fileId + fileExtension;
+                if (userId != null) {
+                    Optional<User> userOptional = userRepository.findById(UUID.fromString(userId));
+                    if (userOptional.isPresent()) {
+                        User user = userOptional.get();
 
-                Optional<User> userOptional = userRepository.findById(UUID.fromString(userId));
-                if (userOptional.isPresent()) {
-                    User user = userOptional.get();
+                        UUID fileId = UUID.randomUUID();
+                        String fileExtension = ".mxl";
+                        String fileNameWithoutExtension = getFileNameWithoutExtension(file.getOriginalFilename());
+                        String outputFileName = fileId + fileExtension;
 
-                    Path uploadPath = Paths.get(UPLOAD_DIR, userId);
-                    if (!Files.exists(uploadPath)) {
-                        Files.createDirectories(uploadPath);
+                        Path uploadPath = Paths.get(UPLOAD_DIR, userId);
+                        if (!Files.exists(uploadPath)) {
+                            Files.createDirectories(uploadPath);
+                        }
+                        Path outputPath = uploadPath.resolve(outputFileName);
+                        Files.write(outputPath, fileContent);
+
+                        String fileUrl = "http://localhost:8080/process/files/" + userId + "/" + outputFileName;
+
+                        MusicFile musicFile = new MusicFile();
+                        musicFile.setName(fileNameWithoutExtension);
+                        musicFile.setUrl(fileUrl);
+                        musicFile.setDate(LocalDateTime.now());
+                        musicFile.setUser(user);
+
+                        musicFileRepository.save(musicFile);
                     }
-                    Path outputPath = uploadPath.resolve(outputFileName);
-                    Files.write(outputPath, fileContent);
-
-                    String fileUrl = "http://localhost:8080/process/files/" + userId + "/" + outputFileName;
-
-                    MusicFile musicFile = new MusicFile();
-                    musicFile.setName(fileNameWithoutExtension);
-                    musicFile.setUrl(fileUrl);
-                    musicFile.setDate(LocalDateTime.now());
-                    musicFile.setUser(user);
-
-                    musicFileRepository.save(musicFile);
                 }
 
                 HttpHeaders responseHeaders = new HttpHeaders();
                 responseHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
                 responseHeaders.setContentDisposition(ContentDisposition.builder("attachment")
-                        .filename(outputFileName)
+                        .filename("processed.mxl")
                         .build());
                 responseHeaders.add("Access-Control-Expose-Headers", "Content-Disposition");
 
@@ -106,9 +112,12 @@ public class ProcessController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("Error: " + e.getMessage()).getBytes());
         }
     }
+
 
     @GetMapping("/files/{fileName}")
     public ResponseEntity<Resource> serveFile(@PathVariable String fileName) {

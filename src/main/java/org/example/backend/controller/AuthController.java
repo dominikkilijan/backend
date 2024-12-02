@@ -21,7 +21,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor("your-256-bit-secret-your-256-bit-secret".getBytes());
+    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor("inzynierka-spring-backend-secret-pwr-w4n-2024-2025".getBytes());
 
     @Autowired
     public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -40,7 +40,7 @@ public class AuthController {
                         .setSubject(user.getId().toString())
                         .claim("email", user.getEmail())
                         .setIssuedAt(new Date())
-                        .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 24 godziny
+                        .setExpiration(new Date(System.currentTimeMillis() + 86400000))
                         .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                         .compact();
 

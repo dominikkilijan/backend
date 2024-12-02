@@ -7,6 +7,8 @@ import org.example.backend.repository.MusicFileRepository;
 import org.example.backend.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -31,8 +33,11 @@ public class AccountController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getUserFiles(@RequestParam("userId") UUID userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
+    public ResponseEntity<?> getUserFiles() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = (String) authentication.getPrincipal();
+
+        Optional<User> userOptional = userRepository.findById(UUID.fromString(userId));
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             List<MusicFileResponseDTO> userFiles = user.getMusicFiles()
@@ -42,16 +47,24 @@ public class AccountController {
             return ResponseEntity.ok(userFiles);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("User with the provided ID does not exist.");
+                    .body("User not found.");
         }
     }
 
     @DeleteMapping("/delete-file")
     public ResponseEntity<?> deleteFile(@RequestParam("fileId") UUID fileId) {
+        // Pobranie userId z JWT
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = (String) authentication.getPrincipal();
+
         Optional<MusicFile> fileOptional = musicFileRepository.findById(fileId);
 
         if (fileOptional.isPresent()) {
             MusicFile musicFile = fileOptional.get();
+            if (!musicFile.getUser().getId().toString().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You do not have permission to delete this file.");
+            }
             try {
                 Path filePath = Paths.get(musicFile.getUrl());
                 Files.deleteIfExists(filePath);
