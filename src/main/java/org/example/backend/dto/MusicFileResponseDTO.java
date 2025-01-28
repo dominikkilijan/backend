@@ -1,5 +1,6 @@
 package org.example.backend.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,11 +14,15 @@ import java.util.UUID;
 @AllArgsConstructor
 public class MusicFileResponseDTO {
     @NotNull
+    @NotBlank
     private UUID id;
     @NotNull
+    @NotBlank
     private String name;
     @NotNull
+    @NotBlank
     private String url;
     @NotNull
+    @NotBlank
     private LocalDateTime date;
 }
